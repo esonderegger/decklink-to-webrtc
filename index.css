@@ -1,0 +1,30 @@
+textarea {
+  width: 500px;
+  min-height: 75px;
+}
+
+body {
+  background-color: #494949;
+  color: #ffffff;
+  font-family: sans-serif;
+  padding: 0;
+  margin: 0;
+}
+
+main {
+  min-height: 100vh;
+  max-width: 80rem;
+  margin: 1rem auto;
+  text-align: center;
+}
+
+.video-container {
+  aspect-ratio: 16 / 9;
+  background-color: #000;
+  margin: 1rem 0;
+  overflow: hidden;
+}
+
+#remote-video {
+  width: 100%;
+}
