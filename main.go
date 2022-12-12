@@ -2,8 +2,6 @@ package main
 
 import (
 	_ "embed"
-	"encoding/base64"
-	"encoding/json"
 
 	"errors"
 	"fmt"
@@ -33,36 +31,6 @@ var indexJs string
 
 var audioTrack *webrtc.TrackLocalStaticRTP
 var videoTrack *webrtc.TrackLocalStaticRTP
-
-func index(w http.ResponseWriter, req *http.Request) {
-	hd := HtmlData{indexCss, indexJs}
-	t := template.Must(template.New("index").Parse(indexHtml))
-	err := t.Execute(w, hd)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func encode(obj interface{}) string {
-	b, err := json.Marshal(obj)
-	if err != nil {
-		panic(err)
-	}
-
-	return base64.StdEncoding.EncodeToString(b)
-}
-
-func decode(in string, obj interface{}) {
-	b, err := base64.StdEncoding.DecodeString(in)
-	if err != nil {
-		panic(err)
-	}
-
-	err = json.Unmarshal(b, obj)
-	if err != nil {
-		panic(err)
-	}
-}
 
 func readRtpWriteTrack(port int, track *webrtc.TrackLocalStaticRTP) {
 	listener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: port})
@@ -103,19 +71,26 @@ func readRtcpFromSender(sender *webrtc.RTPSender) {
 	}
 }
 
-func start(w http.ResponseWriter, req *http.Request) {
-	if req.Method != "POST" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
+func getStream1(w http.ResponseWriter, req *http.Request) {
+	hd := HtmlData{indexCss, indexJs}
+	t := template.Must(template.New("index").Parse(indexHtml))
+	err := t.Execute(w, hd)
+	if err != nil {
+		panic(err)
 	}
+}
+
+func postStream1(w http.ResponseWriter, req *http.Request) {
 	reqBody, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		http.Error(w, "Problem reading request body", http.StatusBadRequest)
 		return
 	}
 
-	offer := webrtc.SessionDescription{}
-	decode(string(reqBody), &offer)
+	offer := webrtc.SessionDescription{
+		Type: webrtc.SDPTypeOffer,
+		SDP:  string(reqBody),
+	}
 
 	peerConnection, err := webrtc.NewPeerConnection(webrtc.Configuration{
 		ICEServers: []webrtc.ICEServer{
@@ -176,8 +151,22 @@ func start(w http.ResponseWriter, req *http.Request) {
 	// in a production application you should exchange ICE Candidates via OnICECandidate
 	<-gatherComplete
 
-	// Output the answer in base64 and write iot to the response body
-	fmt.Fprintf(w, encode(*peerConnection.LocalDescription()))
+	// Send the SDP to the client in the HTTP response
+	fmt.Fprintf(w, peerConnection.LocalDescription().SDP)
+}
+
+func stream1(w http.ResponseWriter, req *http.Request) {
+	switch req.Method {
+	case "GET":
+		getStream1(w, req)
+		return
+	case "POST":
+		postStream1(w, req)
+		return
+	default:
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
 }
 
 func main() {
@@ -196,8 +185,7 @@ func main() {
 
 	go readRtpWriteTrack(5003, audioTrack)
 	go readRtpWriteTrack(5004, videoTrack)
-	http.HandleFunc("/", index)
-	http.HandleFunc("/start", start)
+	http.HandleFunc("/stream1", stream1)
 	port := ":8090"
 	fmt.Fprintf(os.Stdout, "Serving on http://localhost%s\n", port)
 	http.ListenAndServe(port, nil)
