@@ -61,7 +61,9 @@ func readRtpWriteTrack(port int, track *webrtc.TrackLocalStaticRTP) {
 			if rtpPacket.SequenceNumber != packetCounter+1 {
 				fmt.Printf("unexpected sequence number - got: %d, expected: %d\n", rtpPacket.SequenceNumber, packetCounter+1)
 			}
-			packetCounter = rtpPacket.SequenceNumber
+			if rtpPacket.SequenceNumber != 6 {
+				packetCounter = rtpPacket.SequenceNumber
+			}
 		}
 		if n, err = rtpPacket.MarshalTo(inboundRTPPacket); err != nil {
 			panic(err)
