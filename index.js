@@ -51,10 +51,10 @@ pc.createOffer()
 function toggleMute() {
   if (videoEl.muted) {
     videoEl.muted = false;
-    videoEl.textContent = "Mute";
+    muteToggleButton.textContent = "Mute";
   } else {
     videoEl.muted = true;
-    videoEl.textContent = "Un-mute";
+    muteToggleButton.textContent = "Un-mute";
   }
 }
 
