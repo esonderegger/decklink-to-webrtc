@@ -1,4 +1,4 @@
-ffmpeg -y \
+ffmpeg -y -hide_banner \
   -vsync 0 -async 0 -re -fflags +genpts -stream_loop -1 \
   -i $1 \
   -map 0:a -vn \
@@ -11,7 +11,7 @@ ffmpeg -y \
   -vcodec h264_nvenc -preset llhq \
   -profile:v main \
   -rc cbr \
-  -b:v 6M -maxrate 8M -bufsize 1M \
+  -b:v 4M -maxrate 4M -bufsize 8M \
   -g 24 -strict_gop 1 \
   -movflags +faststart \
   -zerolatency 1 -2pass 0 \
