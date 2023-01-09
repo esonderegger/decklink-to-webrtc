@@ -8,13 +8,11 @@ ffmpeg -y \
   -map 0:v -an \
   -pix_fmt yuv420p \
   -vf "settb=AVTB,setpts='trunc(PTS/1K)*1K+st(1,trunc(RTCTIME/1K))-1K*trunc(ld(1)/1K)',drawtext=fontfile=/usr/share/fonts/truetype/noto/NotoSansMono-Regular.ttf:fontsize=35:fontcolor=white:text=' Frame\:%{n}     Clock\:%{localtime}.%{eif\:1M*t-1K*trunc(t*1K)\:d}':x=1500:y=4" \
-  -vcodec h264_nvenc -preset llhq \
+  -vcodec libx264 -preset ultrafast \
   -profile:v main \
-  -rc cbr \
   -b:v 6M -maxrate 8M -bufsize 1M \
-  -g 24 -strict_gop 1 \
+  -g 24 \
   -movflags +faststart \
-  -zerolatency 1 -2pass 0 \
-  -delay 0 -b_adapt 0 -no-scenecut 1 \
-  -nonref_p 1 -forced-idr 1 \
+  -tune zerolatency \
+  -forced-idr 1 \
   -f rtp 'rtp://127.0.0.1:5004?pkt_size=1200'
