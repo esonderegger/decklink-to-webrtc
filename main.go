@@ -33,7 +33,7 @@ var indexJs string
 var audioTrack *webrtc.TrackLocalStaticRTP
 var videoTrack *webrtc.TrackLocalStaticRTP
 
-var packetCounter = 0
+var packetCounter uint16 = 0
 
 func readRtpWriteTrack(port int, track *webrtc.TrackLocalStaticRTP) {
 	listener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: port})
@@ -52,18 +52,16 @@ func readRtpWriteTrack(port int, track *webrtc.TrackLocalStaticRTP) {
 		if err != nil {
 			panic(fmt.Sprintf("error during read: %s", err))
 		}
-		packetCounter += 1
-		if packetCounter%100 == 0 {
-			fmt.Println(packetCounter)
-		}
+
 		if err = rtpPacket.Unmarshal(inboundRTPPacket[:n]); err != nil {
 			panic(err)
 		}
-		if port == 5003 {
-			rtpPacket.PayloadType = 111
-		}
+
 		if port == 5004 {
-			rtpPacket.PayloadType = 96
+			if rtpPacket.SequenceNumber != packetCounter+1 {
+				fmt.Printf("unexpected sequence number - got: %d, expected: %d\n", rtpPacket.SequenceNumber, packetCounter+1)
+			}
+			packetCounter = rtpPacket.SequenceNumber
 		}
 		if n, err = rtpPacket.MarshalTo(inboundRTPPacket); err != nil {
 			panic(err)
