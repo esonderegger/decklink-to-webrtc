@@ -9,17 +9,15 @@
   </head>
 
   <body>
+    <header>
+      A little demo using Pion and FFmpeg
+    </header>
     <main>
-      <section>
-        <p>A little demo using Pion and FFmpeg</p>
-      </section>
-      <section class="video-container">
-        <video id="remote-video" autoplay muted></audio>
-      </section>
-      <section>
-        <button id="mute-toggle" class="button">Un-mute</button>
-      </section>
+      <video id="remote-video" autoplay muted></video>
     </main>
+    <footer>
+      <button id="mute-toggle" class="button">Un-mute</button>
+    </footer>
     <script>{{ .Js }}</script>
   </body>
 </html>

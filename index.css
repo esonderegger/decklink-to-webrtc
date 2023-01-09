@@ -4,13 +4,32 @@ body {
   font-family: sans-serif;
   padding: 0;
   margin: 0;
+  text-align: center;
+  display: flex;
+  flex-flow: column;
+  height: 100vh;
+  justify-content: space-between;
+}
+
+header {
+  height: 4rem;
+  line-height: 4rem;
+  font-size: 1.2rem;
 }
 
 main {
-  min-height: 100vh;
-  max-width: 100rem;
-  margin: 1rem auto;
-  text-align: center;
+  max-height: calc(100% - 8rem);
+}
+
+video {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+footer {
+  height: 4rem;
+  line-height: 4rem;
 }
 
 .video-container {
@@ -18,10 +37,6 @@ main {
   background-color: #000;
   margin: 1rem 0;
   overflow: hidden;
-}
-
-#remote-video {
-  width: 100%;
 }
 
 .button {
