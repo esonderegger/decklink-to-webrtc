@@ -33,9 +33,8 @@ var indexJs string
 var audioTrack *webrtc.TrackLocalStaticRTP
 var videoTrack *webrtc.TrackLocalStaticRTP
 
-var packetCounter uint16 = 0
-
 func readRtpWriteTrack(port int, track *webrtc.TrackLocalStaticRTP) {
+	var packetCounter uint16 = 0
 	listener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: port})
 	if err != nil {
 		panic(err)
@@ -57,14 +56,11 @@ func readRtpWriteTrack(port int, track *webrtc.TrackLocalStaticRTP) {
 			panic(err)
 		}
 
-		if port == 5004 {
-			if rtpPacket.SequenceNumber != packetCounter+1 {
-				fmt.Printf("unexpected sequence number - got: %d, expected: %d\n", rtpPacket.SequenceNumber, packetCounter+1)
-			}
-			if rtpPacket.SequenceNumber != 6 {
-				packetCounter = rtpPacket.SequenceNumber
-			}
+		if rtpPacket.SequenceNumber != packetCounter+1 {
+			fmt.Printf("unexpected sequence number on port %d - got: %d, expected: %d\n", port, rtpPacket.SequenceNumber, packetCounter+1)
 		}
+		packetCounter = rtpPacket.SequenceNumber
+
 		if n, err = rtpPacket.MarshalTo(inboundRTPPacket); err != nil {
 			panic(err)
 		}
@@ -203,7 +199,7 @@ func main() {
 	}
 	videoTrack = videoTrackTemp
 
-	go readRtpWriteTrack(5003, audioTrack)
+	go readRtpWriteTrack(5002, audioTrack)
 	go readRtpWriteTrack(5004, videoTrack)
 	http.HandleFunc("/stream1", stream1)
 	port := ":8090"
