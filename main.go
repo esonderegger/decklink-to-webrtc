@@ -61,10 +61,6 @@ func readRtpWriteTrack(port int, track *webrtc.TrackLocalStaticRTP) {
 		}
 		packetCounter = rtpPacket.SequenceNumber
 
-		if n, err = rtpPacket.MarshalTo(inboundRTPPacket); err != nil {
-			panic(err)
-		}
-
 		if _, err = track.Write(inboundRTPPacket[:n]); err != nil {
 			if errors.Is(err, io.ErrClosedPipe) {
 				// The peerConnection has been closed.
