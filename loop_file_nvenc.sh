@@ -7,7 +7,7 @@ ffmpeg -y -hide_banner \
   -f rtp -max_delay 0 -application lowdelay 'rtp://127.0.0.1:5002?pkt_size=1200' \
   -map 0:v -an \
   -pix_fmt yuv420p \
-  -vf "settb=AVTB,setpts='trunc(PTS/1K)*1K+st(1,trunc(RTCTIME/1K))-1K*trunc(ld(1)/1K)',drawtext=fontfile=/usr/share/fonts/truetype/noto/NotoSansMono-Regular.ttf:fontsize=35:fontcolor=white:text=' Frame\:%{n}     Clock\:%{localtime}.%{eif\:1M*t-1K*trunc(t*1K)\:d}':x=1500:y=4" \
+  -vf "settb=AVTB,setpts='trunc(PTS/1K)*1K+st(1,trunc(RTCTIME/1K))-1K*trunc(ld(1)/1K)',drawtext=fontfile=/usr/share/fonts/truetype/noto/NotoSansMono-Regular.ttf:fontsize=35:fontcolor=white:text=' Frame\:%{n}     Clock\:%{localtime}.%{eif\:1M*t-1K*trunc(t*1K)\:d}':x=600:y=4" \
   -vcodec h264_nvenc -preset llhq \
   -profile:v main \
   -rc cbr \
