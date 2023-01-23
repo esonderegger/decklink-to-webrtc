@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"text/template"
 
 	"github.com/pion/rtp"
@@ -30,8 +31,20 @@ var indexCss string
 //go:embed index.js
 var indexJs string
 
-var audioTrack *webrtc.TrackLocalStaticRTP
-var videoTrack *webrtc.TrackLocalStaticRTP
+var opusTrack *webrtc.TrackLocalStaticRTP
+var h264Track *webrtc.TrackLocalStaticRTP
+
+func getPortFromEnv(key string, fallback int) int {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		return fallback
+	}
+	intVar, err := strconv.Atoi(value)
+	if err != nil {
+		return fallback
+	}
+	return intVar
+}
 
 func readRtpWriteTrack(port int, track *webrtc.TrackLocalStaticRTP) {
 	var packetCounter uint16 = 0
@@ -115,13 +128,13 @@ func postStream1(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	rtpAudioSender, err := peerConnection.AddTrack(audioTrack)
+	rtpAudioSender, err := peerConnection.AddTrack(opusTrack)
 	if err != nil {
 		panic(err)
 	}
 	go readRtcpFromSender(rtpAudioSender)
 
-	rtpVideoSender, err := peerConnection.AddTrack(videoTrack)
+	rtpVideoSender, err := peerConnection.AddTrack(h264Track)
 	if err != nil {
 		panic(err)
 	}
@@ -182,23 +195,26 @@ func stream1(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	// Create audio and video tracks
-	// If I were better at go, I would know how to avoid creating these temp variables and then using them to set the globals
-	audioTrackTemp, err := webrtc.NewTrackLocalStaticRTP(webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeOpus}, "audio", "pion")
-	if err != nil {
-		panic(err)
-	}
-	audioTrack = audioTrackTemp
-	videoTrackTemp, err := webrtc.NewTrackLocalStaticRTP(webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeH264}, "video", "pion")
-	if err != nil {
-		panic(err)
-	}
-	videoTrack = videoTrackTemp
+	opusPort := getPortFromEnv("OPUS_PORT", 5002)
+	h264Port := getPortFromEnv("H264_PORT", 5004)
+	whepPort := getPortFromEnv("WHEP_PORT", 8080)
 
-	go readRtpWriteTrack(5002, audioTrack)
-	go readRtpWriteTrack(5004, videoTrack)
-	http.HandleFunc("/stream1", stream1)
-	port := ":8090"
+	var err error
+
+	opusTrack, err = webrtc.NewTrackLocalStaticRTP(webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeOpus}, "audio", "pion")
+	if err != nil {
+		panic(err)
+	}
+
+	h264Track, err = webrtc.NewTrackLocalStaticRTP(webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeH264}, "video", "pion")
+	if err != nil {
+		panic(err)
+	}
+
+	go readRtpWriteTrack(opusPort, opusTrack)
+	go readRtpWriteTrack(h264Port, h264Track)
+	http.HandleFunc("/stream", stream1)
+	port := ":" + strconv.Itoa(whepPort)
 	fmt.Fprintf(os.Stdout, "Serving on http://localhost%s\n", port)
 	http.ListenAndServe(port, nil)
 }
